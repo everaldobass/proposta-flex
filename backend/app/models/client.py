@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from app.config.database import Base
 
 class Client(Base):
@@ -10,6 +11,11 @@ class Client(Base):
     name = Column(String, nullable=False)
     phone = Column(String, nullable=True)
     email = Column(String, nullable=True)
+    company = Column(String, nullable=True)
+    document = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relacionamentos
     user = relationship("User", back_populates="clients")

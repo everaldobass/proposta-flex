@@ -1,0 +1,5 @@
+.env
+proposta_flex.db
+.vscode
+.env.local
+node_modules

@@ -19,11 +19,20 @@ def create_proposal(
 
 @router.get("/", response_model=List[ProposalResponse])
 def list_proposals(
+    status: str | None = None,
+    limit: int | None = None,
     user_id: int = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
     """Listar todas as propostas do usuário"""
-    return ProposalService.get_proposals_by_user(db, user_id)
+    status_map = {
+        "draft": "Rascunho",
+        "sent": "Enviado",
+        "approved": "Aprovado",
+        "rejected": "Reprovado",
+    }
+    normalized_status = status_map.get(status, status)
+    return ProposalService.get_proposals_by_user(db, user_id, normalized_status, limit)
 
 @router.get("/{proposal_id}", response_model=ProposalResponse)
 def get_proposal(

@@ -1,6 +1,9 @@
 # Proposta Flex
 
 Sistema SaaS web responsivo para auxiliar profissionais autônomos e pequenas empresas na criação e gestão de orçamentos e propostas comerciais.
+<img src="/arquivos/img/propostaflex.png" alt="Logo" width="300" height="auto">
+<img src="/arquivos/img/proposta-flex.png" alt="Logo" width="300" height="auto">
+
 ## Instalação
 ```
 cd /mnt/okcomputer/output/proposta-flex/backend
@@ -10,6 +13,9 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 
 pip install "bcrypt==4.0.1"
+
+
+pip install -r requirements.txt && python seed.py && uvicorn app.main:app --reload
 
 cd /tmp/proposta-flex-frontend  # ou recriar em outro local
 npm install

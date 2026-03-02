@@ -10,7 +10,11 @@ class ClientService:
             user_id=user_id,
             name=client_data.name,
             phone=client_data.phone,
-            email=client_data.email
+            email=client_data.email,
+            company=client_data.company,
+            document=client_data.document,
+            address=client_data.address,
+            notes=client_data.notes,
         )
         db.add(db_client)
         db.commit()

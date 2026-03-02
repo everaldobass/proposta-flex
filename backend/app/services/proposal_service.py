@@ -66,10 +66,18 @@ class ProposalService:
         return db_proposal
 
     @staticmethod
-    def get_proposals_by_user(db: Session, user_id: int):
-        return db.query(Proposal).filter(
-            Proposal.user_id == user_id
-        ).order_by(Proposal.proposal_date.desc()).all()
+    def get_proposals_by_user(db: Session, user_id: int, status_filter: str = None, limit: int = None):
+        query = db.query(Proposal).filter(Proposal.user_id == user_id)
+
+        if status_filter:
+            query = query.filter(Proposal.status == status_filter)
+
+        query = query.order_by(Proposal.proposal_date.desc())
+
+        if limit and limit > 0:
+            query = query.limit(limit)
+
+        return query.all()
 
     @staticmethod
     def get_proposal_by_id(db: Session, proposal_id: int, user_id: int):
@@ -163,26 +171,43 @@ class ProposalService:
 
     @staticmethod
     def get_proposals_last_6_months(db: Session, user_id: int):
-        six_months_ago = datetime.utcnow() - timedelta(days=180)
-        
+        now = datetime.utcnow()
+        month_labels = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+
+        month_keys = []
+        for offset in range(5, -1, -1):
+            year = now.year
+            month = now.month - offset
+            while month <= 0:
+                month += 12
+                year -= 1
+            month_keys.append((year, month))
+
+        start_year, start_month = month_keys[0]
+        start_date = datetime(start_year, start_month, 1)
+
         proposals = db.query(Proposal).filter(
             Proposal.user_id == user_id,
-            Proposal.proposal_date >= six_months_ago
+            Proposal.proposal_date >= start_date
         ).all()
-        
-        # Agrupar por mês
-        data = {}
-        for p in proposals:
-            month_key = p.proposal_date.strftime("%Y-%m")
-            if month_key not in data:
-                data[month_key] = {"total": 0, "aprovado": 0, "reprovado": 0, "pendente": 0}
-            
-            data[month_key]["total"] += float(p.total_value)
-            if p.status == "Aprovado":
-                data[month_key]["aprovado"] += float(p.total_value)
-            elif p.status == "Reprovado":
-                data[month_key]["reprovado"] += float(p.total_value)
-            else:
-                data[month_key]["pendente"] += float(p.total_value)
-        
-        return data
+
+        grouped = {
+            f"{year:04d}-{month:02d}": {
+                "month": month_labels[month - 1],
+                "proposals": 0,
+                "approved": 0,
+                "revenue": 0.0,
+            }
+            for year, month in month_keys
+        }
+
+        for proposal in proposals:
+            key = proposal.proposal_date.strftime("%Y-%m")
+            if key not in grouped:
+                continue
+            grouped[key]["proposals"] += 1
+            if proposal.status == "Aprovado":
+                grouped[key]["approved"] += 1
+                grouped[key]["revenue"] += float(proposal.total_value)
+
+        return [grouped[f"{year:04d}-{month:02d}"] for year, month in month_keys]
